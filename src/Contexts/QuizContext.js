@@ -1,4 +1,5 @@
 import { createContext, useContext, useReducer, useEffect } from "react";
+import { getQuestions } from "../API/useGetQuestions";
 
 const initialState = {
   questions: [],
@@ -79,18 +80,23 @@ function QuizProvider({ children }) {
     dispatch,
   ] = useReducer(reducer, initialState);
 
+  useEffect(() => {
+    // Fetch questions asynchronously on component mount
+    getQuestions()
+      .then((data) => {
+        // Assuming getQuestions resolves with the questions data
+        dispatch({ type: "dataReceived", payload: data });
+      })
+      .catch(() => {
+        dispatch({ type: "dataFailed" });
+      });
+  }, []);
+
   const numQuestions = questions.length;
   const maxPossiblePoints = questions.reduce(
     (prev, cur) => prev + cur.points,
     0
   );
-
-  useEffect(function () {
-    fetch("http://localhost:8000/questions")
-      .then((res) => res.json())
-      .then((data) => dispatch({ type: "dataReceived", payload: data }))
-      .catch((err) => dispatch({ type: "dataFailed" }));
-  }, []);
 
   return (
     <QuizContext.Provider
