@@ -3,7 +3,6 @@ import { getQuestions } from "../API/useGetQuestions";
 
 const initialState = {
   questions: [],
-
   // loading, error, ready, active, finished
   status: "loading",
   index: 0,
@@ -53,10 +52,12 @@ function reducer(state, action) {
         highscore:
           state.points > state.highscore ? state.points : state.highscore,
       };
+
     case "restart":
       return {
         ...initialState,
         questions: state.questions,
+        highscore: state.highscore,
         status: "ready",
       };
 
@@ -81,11 +82,15 @@ function QuizProvider({ children }) {
   ] = useReducer(reducer, initialState);
 
   useEffect(() => {
-    // Fetch questions asynchronously on component mount
     getQuestions()
       .then((data) => {
-        // Assuming getQuestions resolves with the questions data
-        dispatch({ type: "dataReceived", payload: data });
+        // Transform each question to include options in an array and ensure it has a points value
+        const formattedQuestions = data.map((q) => ({
+          ...q,
+          options: [q.Option1, q.Option2, q.Option3, q.Option4].filter(Boolean), // Assuming these are your option fields
+          points: q.points || 10, // Assuming 10 points per question if not specified
+        }));
+        dispatch({ type: "dataReceived", payload: formattedQuestions });
       })
       .catch(() => {
         dispatch({ type: "dataFailed" });
