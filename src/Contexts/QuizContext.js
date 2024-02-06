@@ -1,10 +1,10 @@
-import { createContext, useContext, useReducer, useEffect } from "react";
-import { getQuestions } from "../API/useGetQuestions";
+import { createContext, useContext, useReducer } from "react";
+import Questions from "./Questions";
 
 const initialState = {
-  questions: [],
-  // loading, error, ready, active, finished
-  status: "loading",
+  questions: Questions(),
+  //ready, active, finished
+  status: "ready",
   index: 0,
   answer: null,
   points: 0,
@@ -16,17 +16,6 @@ const SECS_PER_QUESTIONS = 30;
 
 function reducer(state, action) {
   switch (action.type) {
-    case "dataReceived":
-      return {
-        ...state,
-        questions: action.payload,
-        status: "ready",
-      };
-    case "dataFailed":
-      return {
-        ...state,
-        status: "error",
-      };
     case "start":
       return {
         ...state,
@@ -80,22 +69,6 @@ function QuizProvider({ children }) {
     { questions, status, index, answer, points, highscore, secondsRemaining },
     dispatch,
   ] = useReducer(reducer, initialState);
-
-  useEffect(() => {
-    getQuestions()
-      .then((data) => {
-        // Transform each question to include options in an array and ensure it has a points value
-        const formattedQuestions = data.map((q) => ({
-          ...q,
-          options: [q.Option1, q.Option2, q.Option3, q.Option4].filter(Boolean), // Assuming these are your option fields
-          points: q.points || 10, // Assuming 10 points per question if not specified
-        }));
-        dispatch({ type: "dataReceived", payload: formattedQuestions });
-      })
-      .catch(() => {
-        dispatch({ type: "dataFailed" });
-      });
-  }, []);
 
   const numQuestions = questions.length;
   const maxPossiblePoints = questions.reduce(

@@ -10,7 +10,6 @@ function Timer() {
     function () {
       const id = setInterval(function () {
         dispatch({ type: "tick" });
-        console.log("tick");
       }, 1000);
 
       return () => clearInterval(id);
